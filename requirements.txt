@@ -1,0 +1,34 @@
+# Phase 1 dependencies. Uncomment per milestone — we install only what the
+# current step needs (CLAUDE.md: build one step at a time).
+
+# --- Milestone 1+ : model wrapper (app/llm.py) ---
+openai>=1.30,<2.0
+python-dotenv>=1.0
+
+# --- Milestone 3+ : persistence ---
+SQLAlchemy>=2.0,<3.0
+psycopg[binary]>=3.1        # Postgres driver (psycopg 3)
+redis>=5.0                  # job queue (used in later milestones)
+
+# --- Milestone 4+ : Slack approval (Socket Mode) ---
+slack-bolt>=1.18           # pulls in slack-sdk; Socket Mode handler included
+
+# --- Milestone 5+ : Gmail ingest + send ---
+google-api-python-client>=2.0
+google-auth-oauthlib>=1.2
+google-cloud-pubsub>=2.0
+
+# --- Phase 2 case 3 : pricing (exact structured lookup) ---
+openpyxl>=3.1          # parse SMS_Master_Pricing.xlsx (Final Summary Sheet)
+pycountry>=23.12       # input -> ISO code -> sheet keys (NOT name string-match)
+
+# --- Phase 2 case 2 : platform Q&A from docs (RAG) ---
+pgvector>=0.2,<0.4          # SQLAlchemy Vector type + pgvector ops (needs the
+                           # pgvector/pgvector Postgres image; see docker-compose)
+# docs crawl needs no HTML deps (Mintlify serves clean .md). Support (Zendesk
+# article bodies are HTML) uses markdownify (+ its beautifulsoup4 dep).
+markdownify>=0.11
+beautifulsoup4>=4.12
+
+# --- Dev / tests ---
+# pytest>=8.0

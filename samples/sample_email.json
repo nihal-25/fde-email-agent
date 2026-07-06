@@ -1,0 +1,25 @@
+{
+  "thread_id": "thread-sample-001",
+  "subject": "Trying out Plivo for SMS notifications",
+  "participants": ["priya@brightcart.io", "nihal.manjunath@plivo.com"],
+  "messages": [
+    {
+      "from": "Priya Nair <priya@brightcart.io>",
+      "to": "nihal.manjunath@plivo.com",
+      "date": "2026-06-15T09:42:00-07:00",
+      "body": "Hi there,\n\nI'm Priya, a backend engineer at BrightCart (we run an online grocery marketplace). We're looking to send order confirmation and delivery-update texts to customers in the US and India, somewhere around 50k messages a month to start.\n\nA couple of questions before we commit:\n1. Does Plivo support both transactional SMS in the US and India out of the box?\n2. Roughly how quickly can we get a number provisioned and start sending?\n\nThanks!\nPriya"
+    },
+    {
+      "from": "Nihal Manjunath <nihal.manjunath@plivo.com>",
+      "to": "priya@brightcart.io",
+      "date": "2026-06-15T14:10:00-07:00",
+      "body": "Hi Priya,\n\nGreat to meet you, and thanks for considering Plivo! Short answer: yes to both. I'll pull together the specifics on India routing and send them over shortly.\n\nBest,\nNihal"
+    },
+    {
+      "from": "Priya Nair <priya@brightcart.io>",
+      "to": "nihal.manjunath@plivo.com",
+      "date": "2026-06-16T22:05:00-07:00",
+      "body": "Thanks Nihal! One more thing that came up internally: our compliance team is asking whether we need DLT registration for the India traffic, and if so, whether Plivo helps with that process. If it's easier to talk it through, I'm free most afternoons IST this week.\n\nBest,\nPriya"
+    }
+  ]
+}

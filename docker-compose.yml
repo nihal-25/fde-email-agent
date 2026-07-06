@@ -1,0 +1,44 @@
+# Local infra for the FDE Email Agent (Phase 1).
+# Postgres = state + audit log. Redis = job queue (used in later milestones).
+# Bring up with:  docker compose up -d
+#
+# Credentials here are LOCAL DEV ONLY and match .env's DATABASE_URL/REDIS_URL.
+# Real deployments must supply secrets via environment, not this file.
+
+services:
+  postgres:
+    # pgvector/pgvector:pg16 = stock Postgres 16 + the `vector` extension
+    # available (CREATE EXTENSION vector). Same PG major as postgres:16, so the
+    # existing pgdata volume is compatible. Needed for the docs-RAG vector store.
+    image: pgvector/pgvector:pg16
+    container_name: fde_postgres
+    environment:
+      POSTGRES_USER: fde
+      POSTGRES_PASSWORD: fde
+      POSTGRES_DB: fde_email_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fde -d fde_email_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: fde_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,42 @@
+# Secrets / config — NEVER commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OAuth / credential artifacts (Gmail, etc. — added in later milestones)
+credentials.json
+token.json
+*.pem
+_real_message.json
+*.log
+
+# Local tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+.idea/
+.vscode/
+
+# Local pricing source data (imported via app/pricing_import.py; not tracked)
+SMS Master Pricing.xlsx
+*.xlsx
+
+# Dev-environment / agent config (not part of the public release)
+CLAUDE.md
+.claude/
+*.pickle
+*.pkl
