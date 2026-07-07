@@ -233,6 +233,30 @@ def _route_and_post(thread, thread_id, thread_text, classification, draft, flags
             print(f"[pricing] thread={thread_id} flags={[f['type'] for f in flags]}")
         except Exception as e:
             print(f"[pricing-failed] keeping generic draft: {type(e).__name__}: {e}")
+    elif intent == "meeting_followup":
+        # The guarded builder is the ONLY entry for meeting_followup. A meeting-
+        # notes / follow-up mail that reaches the CLASSIFIER (e.g. auto-generated
+        # notes from a sender is_notes_mail() doesn't recognize) must NOT free-write
+        # via draft_reply — route it through the SAME commitment + groundedness
+        # guards the notes-mail detector uses. Thin/absent notes yield a VISIBLE,
+        # un-enriched fallback (never an invented recap); a fabricated commitment to
+        # a customer is exactly the failure these guards exist to prevent.
+        try:
+            from app import meeting_followup
+            msgs = thread.get("messages") or []
+            notes_body = (msgs[-1].get("body") if msgs else "") or thread_text
+            parsed = meeting_followup.parse_notes(thread.get("subject", ""), notes_body)
+            draft, flags = meeting_followup.build_followup(parsed, classification.get("customer_name"))
+            print(f"[meeting-followup-classified] thread={thread_id} "
+                  f"thin={meeting_followup.is_thin(parsed)} flags={[f['type'] for f in flags]}")
+        except Exception as e:
+            # Never free-write and never crash the thread — a VISIBLE hold.
+            draft = ("Hi,\n\nThanks for the time today — I'll follow up with a recap shortly.\n\n"
+                     "Best regards,\nNihal Manjunath\nForward Deployed Engineer @ Plivo")
+            flags = [{"type": "meeting_followup_error",
+                      "text": f"meeting_followup builder errored ({type(e).__name__}); no usable notes "
+                              f"drafted — HELD for manual follow-up (recap not invented)."}]
+            print(f"[meeting-followup-classified] FAILED → held: {type(e).__name__}: {e}")
 
     ids = db.persist_processing(
         thread, classification, draft,
