@@ -49,7 +49,10 @@ Every action surfaces in Slack for human approval — nothing reaches a customer
 ![Approval card — a grounded documentation answer](docs/images/approval-card.png)
 *Platform questions are answered **only** from retrieved docs (grounded-or-hold): the card shows the drafted answer with its source, and no draft sends without a person.*
 
-![#debugging thread — an SMS delivery investigation](docs/images/debugging-thread.png)
+![#debugging — the account-ask](docs/images/debugging-thread.png)
+*The agent never resolves account identity from email content — it asks a human for the account id, and every warehouse query is account-scoped in code.*
+
+![#debugging — the finding](docs/images/debugging-thread2.png)
 *Debugging runs on **exact** warehouse aggregates (immune to recency truncation flipping the verdict), labels **grounded facts** separately from **interpretation**, and reports carrier codes verbatim — never guessing a cause from a code.*
 
 ![Customer draft — the conservative reply](docs/images/customer-draft.png)
@@ -119,17 +122,31 @@ knowing.
 
 ## How it works
 
-<!-- Replace the diagram below with your own if you prefer; this is the processing loop. -->
-
 ```mermaid
-flowchart LR
-    M[New email] --> I[Ingest full thread]
-    I --> C[Classify intent]
-    C --> G["Gather grounding<br/>docs · call/message records · calendar"]
-    G --> D[Draft reply]
-    D --> A{"Human approval<br/>in Slack"}
-    A -->|approve / edit| S[Send · book · log]
-    A -->|reject| X[Discard]
+flowchart TD
+    IN["Inbound email<br/>Gmail via Pub/Sub, pull"] --> IDEM{"Idempotency anchor<br/>seen this delivery?"}
+    IDEM -->|duplicate| COLLAPSE["Collapse to existing draft"]
+    IDEM -->|new| CLS["Classify intent"]
+
+    CLS --> SCH["Scheduling<br/>free/busy, zone resolved in code"]
+    CLS --> DOCS["Docs question<br/>RAG, grounded-or-hold"]
+    CLS --> DBG["Debugging<br/>account-scoped reads:<br/>calls_fact / messages_fact"]
+    CLS --> MF["Meeting follow-up<br/>grounded in notes only"]
+
+    DOCS -->|cannot ground| HOLD["Holding reply<br/>ask, never invent"]
+    DBG --> VERIFY["Internal verify<br/>facts labeled apart<br/>from interpretation"]
+
+    SCH --> DRAFT["Draft"]
+    DOCS --> DRAFT
+    HOLD --> DRAFT
+    VERIFY --> DRAFT
+    MF --> DRAFT
+
+    DRAFT --> GATE{"Slack approval gate<br/>human approves / edits / rejects"}
+    GATE -->|approve| SEND["Send reply<br/>the only outbound path"]
+    GATE -->|reject| NOTHING["Nothing sent"]
+
+    RECON["Reconciliation<br/>startup + periodic catch-up"] -.->|recovers dropped events & downtime| GATE
 ```
 
 Every message follows the one loop — ingest → classify → gather grounding → draft → **human approval** → act. What changes per case is which tools are reached for and which guidance is followed; the position of the human never moves.
