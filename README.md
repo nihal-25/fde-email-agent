@@ -1,5 +1,7 @@
 # Email agent for customer-support workflows
 
+> 🎥 **Demo:** [Loom walkthrough](LOOM_URL_HERE) — _link coming soon_
+
 An autonomous email assistant for a solutions engineer at a CPaaS company. It reads an
 incoming customer thread, works out what the customer needs, gathers whatever grounding it
 can (product documentation, the account's own call and message records, calendar
@@ -39,6 +41,19 @@ recorded, and addressed to the right thread by matching the meeting's external a
 
 All of it lands as a draft at a single Slack approval gate, where the engineer approves,
 edits, or rejects. Approval is the only path to an outbound action.
+
+## What it looks like
+
+Every action surfaces in Slack for human approval — nothing reaches a customer unattended.
+
+![Approval card — a grounded documentation answer](docs/images/approval-card.png)
+*Platform questions are answered **only** from retrieved docs (grounded-or-hold): the card shows the drafted answer with its source, and no draft sends without a person.*
+
+![#debugging thread — an SMS delivery investigation](docs/images/debugging-thread.png)
+*Debugging runs on **exact** warehouse aggregates (immune to recency truncation flipping the verdict), labels **grounded facts** separately from **interpretation**, and reports carrier codes verbatim — never guessing a cause from a code.*
+
+![Customer draft — the conservative reply](docs/images/customer-draft.png)
+*The customer-facing draft states only what the data shows — no invented commitment or cause (the failure mode this guards against) — and still waits for approval before it sends.*
 
 ## Design rationale
 
@@ -101,6 +116,23 @@ account-scoped call and message lookups for the debugging path.
 Model access lives behind one wrapper module. Nothing else in the codebase talks to the model
 vendor directly, so the provider can be changed in a single file without the rest of the system
 knowing.
+
+## How it works
+
+<!-- Replace the diagram below with your own if you prefer; this is the processing loop. -->
+
+```mermaid
+flowchart LR
+    M[New email] --> I[Ingest full thread]
+    I --> C[Classify intent]
+    C --> G["Gather grounding<br/>docs · call/message records · calendar"]
+    G --> D[Draft reply]
+    D --> A{"Human approval<br/>in Slack"}
+    A -->|approve / edit| S[Send · book · log]
+    A -->|reject| X[Discard]
+```
+
+Every message follows the one loop — ingest → classify → gather grounding → draft → **human approval** → act. What changes per case is which tools are reached for and which guidance is followed; the position of the human never moves.
 
 ## Running it
 
