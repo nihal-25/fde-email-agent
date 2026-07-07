@@ -1,6 +1,5 @@
 # Email agent for customer-support workflows
 
-> 🎥 **Demo:** [Loom walkthrough](LOOM_URL_HERE) — _link coming soon_
 
 An autonomous email assistant for a solutions engineer at a CPaaS company. It reads an
 incoming customer thread, works out what the customer needs, gathers whatever grounding it
